@@ -1,24 +1,22 @@
 ﻿  ed25519.c
-d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(252): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\aa\vs_code_for_bin_make\merge_bin\ed25519.c(253): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
-d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(269): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\aa\vs_code_for_bin_make\merge_bin\ed25519.c(270): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
-d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(289): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\aa\vs_code_for_bin_make\merge_bin\ed25519.c(290): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
-d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(321): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\aa\vs_code_for_bin_make\merge_bin\ed25519.c(321): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
-d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(346): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\aa\vs_code_for_bin_make\merge_bin\ed25519.c(346): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
-d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(367): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\aa\vs_code_for_bin_make\merge_bin\ed25519.c(367): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
-d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(370): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\aa\vs_code_for_bin_make\merge_bin\ed25519.c(370): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
-d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(438): warning C4267: “函数”: 从“size_t”转换到“int”，可能丢失数据
-d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(444): warning C4477: “printf”: 格式字符串“%d”需要类型“int”的参数，但可变参数 1 拥有了类型“size_t”
-  d:\aa\code\vs_code_for_bin_make\merge_bin\ed25519.c(444): note: 请考虑在格式字符串中使用“%zd”
+d:\aa\vs_code_for_bin_make\merge_bin\ed25519.c(431): warning C4267: “函数”: 从“size_t”转换到“int”，可能丢失数据
   正在生成代码
-  3 of 21 functions (14.3%) were compiled, the rest were copied from previous compilation.
+  2 of 21 functions ( 9.5%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    3 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
-  Merge_bin.vcxproj -> D:\AA\code\VS_CODE_FOR_BIN_MAKE\x64\Release\Merge_bin.exe
+    0 functions had inline decision re-evaluated but remain unchanged
+  Merge_bin.vcxproj -> D:\AA\VS_CODE_FOR_BIN_MAKE\x64\Release\Merge_bin.exe

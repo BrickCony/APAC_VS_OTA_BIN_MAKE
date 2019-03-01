@@ -78,8 +78,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>D:\AA\VS_Workspace\Merge_bin\openssl_out32dll\inc32;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\AA\VS_Workspace\Merge_bin\openssl_out32dll\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\AA\VS_CODE_FOR_BIN_MAKE\openssl_out32dll\inc32;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\AA\VS_CODE_FOR_BIN_MAKE\openssl_out32dll\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

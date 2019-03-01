@@ -1,5 +1,5 @@
 #include "scalarmult.ih"
-#include "D:\AA\VS_Workspace\Merge_bin\Merge_bin\stdint.h"
+#include "D:\AA\VS_CODE_FOR_BIN_MAKE\Merge_bin\stdint.h"
 void mul(int32_t *ab, int32_t const *a, int32_t const *b) {
 	    int64_t c;
     int64_t F0 = a[0];

@@ -1,5 +1,5 @@
 #include "scalarmult.ih"
-#include "D:\AA\VS_Workspace\Merge_bin\Merge_bin\stdint.h"
+#include "D:\AA\VS_CODE_FOR_BIN_MAKE\Merge_bin\stdint.h"
 void to_bytes(unsigned char *dst, int32_t const *src) {
     int64_t tmp[10];
 	int32_t c;

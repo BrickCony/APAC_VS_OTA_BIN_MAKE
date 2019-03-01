@@ -16,6 +16,7 @@ long int size_fp = 0;
 char* target_rfm = "ota_rfm.bin";
 char* target_lock = "ota_lock.bin";
 char* target_patch = "ota_patch.bin";
+char* target_bin;
 char* target_pubkey = "APAC_pubkey.bin";
 char* target_sharekey = "APAC_sharekey.bin";
 char* lock_para = "-lock";
@@ -297,7 +298,6 @@ void APAC_compute_sha256(char * fileaddr,unsigned char *sha256_img_tmp)
     fseek(fp, 0, SEEK_END);  
     size_fp = ftell(fp);  
     rewind(fp); 
-	printf("size_fp=%d\n",size_fp);
 
     //申请一块能装下整个文件的空间  
     char *read_buffer = (char*)malloc(sizeof(char)*size_fp);  
@@ -329,7 +329,7 @@ void APAC_read(char * fileaddr, unsigned char * aes_key)
 	fseek(fp, 0, SEEK_END);
 	size_fp = ftell(fp);
 	rewind(fp);
-	printf("size_fp=%d\n", size_fp);
+	
 
 	//读文件  
 	fread(tmp_buffer, 1, size_fp, fp);
@@ -387,10 +387,11 @@ int main(int argc, char* argv[])
 	char** merger_files=(char**)malloc(100);
 	char * app_addr;
 	char * aes_key_addr;
+
 	int i = 0;
 
 
-	if(argc !=5){
+	if(argc !=6){
 		printf("Usage for rfm: Merge_bin.exe <-rfm> <rfm_header.bin> <app1.bin> <aes128_key.bin> \n");
 		printf("Usage for lock: Merge_bin.exe <-lock> <lock_header.bin> <app2.bin> <aes128_key.bin> \n");
 		printf("Usage for patch: Merge_bin.exe <-patch> <patch_header.bin> <app3.bin> <aes128_key.bin> \n");
@@ -401,6 +402,8 @@ int main(int argc, char* argv[])
 	merger_files[2]=target_pubkey;
 	app_addr = argv[3];
 	aes_key_addr = argv[4];
+	target_bin = argv[5];
+
 
 	/**
 	 * Merge flow
@@ -415,50 +418,30 @@ int main(int argc, char* argv[])
 
 	//1. Get AES128_KEY from ota_sign_pubkey.bin
 	APAC_read(aes_key_addr, AES128_KEY);
-	for (i = 0; i < 16; i++)
-	{
-		printf("0x%02X,", AES128_KEY[i] );
-	}
-	printf(" \n AES128_KEY finished...\n");
 
 	//2. Compute asset SHA256 
 	APAC_compute_sha256(app_addr, SHA256_IMG);
-	printf("Start compute.......................\n");
+
 	APAC_write_sha256(SHA256_IMG, 32);
 
-	for (i = 0; i < 32; i++)
-	{
-		printf("0x%02X,", SHA256_IMG[i] & 0xFF);
-	}
-	printf(" \n compute SHA256 finished\n");
 
 
 
 	//3. Encrypt SHA256 with AES128_CBC
 	aes_encrypt_PKCS5Padding(SHA256_IMG, strlen(SHA256_IMG), AES128_KEY, ivec, AES_SHA256);
 
-	for (i = 0; i < 32; i++)
-	{
-		printf("0x%02X,", AES_SHA256[i] & 0xFF);
-	}
-	printf("\n AES_SHA256 encrypted: %d\n\n", sizeof(AES_SHA256));
 
 	//4. Generate public key with the EN25519 algorithm
 	scalarmult(PUB_KEY, SHA256_IMG , AES_SHA256);
-	for (i = 0; i < 32; i++)
-	{
-		printf("0x%02X,", PUB_KEY[i] & 0xFF);
-	}
 
 	APAC_write_pubkey(PUB_KEY,32);
-	printf("\n APAC_write_pubkey ok\n");
 
 	if (!strcmp(argv[1], rfm_para))
-		MergeFiles(merger_files,3,target_rfm);
+		MergeFiles(merger_files,3, target_bin);
 	else if (!strcmp(argv[1], lock_para))
-		MergeFiles(merger_files, 3, target_lock);
+		MergeFiles(merger_files, 3, target_bin);
 	else if (!strcmp(argv[1], patch_para))
-		MergeFiles(merger_files, 3, target_patch);
+		MergeFiles(merger_files, 3, target_bin);
 
 	
 
