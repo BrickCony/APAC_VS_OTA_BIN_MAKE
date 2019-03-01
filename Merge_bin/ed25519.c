@@ -11,6 +11,25 @@
 #define BLOCK_SIZE 16
 #define BUF_LEN  1024 
 
+long int size_fp = 0;
+
+char* target_rfm = "ota_rfm.bin";
+char* target_lock = "ota_lock.bin";
+char* target_patch = "ota_patch.bin";
+char* target_pubkey = "APAC_pubkey.bin";
+char* target_sharekey = "APAC_sharekey.bin";
+char* lock_para = "-lock";
+char* rfm_para = "-rfm";
+char* patch_para = "-patch";
+
+int buffer[10] = { 0 };
+unsigned char SHA256_IMG[32];
+unsigned char AES_SHA256[32] = { 0 };
+unsigned char PUB_KEY[32] = { 0 };
+unsigned char ivec[16] = "0000000000000000";
+unsigned char AES128_KEY[16] = { 0 };
+
+
 static const char encodeCharacterTable[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static const char decodeCharacterTable[256] = {
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
@@ -224,26 +243,11 @@ int aes_decrypt_PKCS5Padding(unsigned char *sz_in_buff, int sz_in_length, unsign
 }
 
 
-
-
-
-
-
-
-long int size_fp = 0;  
-char *ar ;  
-char* target_rfm= "ota_rfm.bin";
-char* target_lock= "ota_lock.bin";
-char* target_patch = "ota_patch.bin";
-char* target_pubkey= "APAC_pubkey.bin";
-char* target_sharekey= "APAC_sharekey.bin";
-char* lock_para ="-lock";
-char* rfm_para = "-rfm" ;
-char* patch_para = "-patch";
 void APAC_write_pubkey(unsigned char * buffer , int size )  
 {  
     FILE *fp;  
 	int i=0;
+
     //二进制方式打开文件  
     fp = fopen(target_pubkey,"wb");  
     if(NULL == fp)  
@@ -253,14 +257,8 @@ void APAC_write_pubkey(unsigned char * buffer , int size )
     }  
 
     //读文件  
-    fwrite(buffer,1,size,fp);//每次读一个，共读size次  
-  
-
-	for(i=0;i<size;i++){
-		//printf("%02X\n",ar[i]);
-	}
+    fwrite(buffer,1,size,fp); 
     fclose(fp);  
-    //free(ar);  
 }  
 
 void APAC_write_sharekey(unsigned char * buffer , int size )  
@@ -276,22 +274,17 @@ void APAC_write_sharekey(unsigned char * buffer , int size )
     }  
 
     //读文件  
-    fwrite(buffer,1,size,fp);//每次读一个，共读size次  
-  
-
-	for(i=0;i<size;i++){
-		//printf("%02X\n",ar[i]);
-	}
+    fwrite(buffer,1,size,fp);
     fclose(fp);  
-    //free(ar);  
 }  
 
 
 
-void APAC_read(char * fileaddr)  
+void APAC_compute_sha256(char * fileaddr,unsigned char *sha256_img_tmp)  
 {  
     FILE *fp;  
   	int i=0;
+
     //二进制方式打开文件  
     fp = fopen(fileaddr,"rb");  
     if(NULL == fp)  
@@ -307,15 +300,43 @@ void APAC_read(char * fileaddr)
 	printf("size_fp=%d\n",size_fp);
 
     //申请一块能装下整个文件的空间  
-    ar = (char*)malloc(sizeof(char)*size_fp);  
+    char *read_buffer = (char*)malloc(sizeof(char)*size_fp);  
 
     //读文件  
-    fread(ar,1,size_fp,fp);//每次读一个，共读size次  
-	for(i=0;i<size_fp;i++){
-		//printf("%02X\n",ar[i]);
-	}
+    fread(read_buffer,1,size_fp,fp);
+
+	SHA256((const unsigned char *)read_buffer, size_fp, sha256_img_tmp);
+	
+    free(read_buffer);  
     fclose(fp);  
 }  
+
+
+void APAC_read(char * fileaddr, unsigned char * aes_key)
+{
+	FILE *fp;
+	int i = 0;
+	unsigned char *tmp_buffer = aes_key;
+	//二进制方式打开文件  
+	fp = fopen(fileaddr, "rb");
+	if (NULL == fp)
+	{
+		printf("Error:Open input.c file fail!\n");
+		return;
+	}
+
+	//求得文件的大小  
+	fseek(fp, 0, SEEK_END);
+	size_fp = ftell(fp);
+	rewind(fp);
+	printf("size_fp=%d\n", size_fp);
+
+	//读文件  
+	fread(tmp_buffer, 1, size_fp, fp);
+
+	fclose(fp);
+}
+
 
 void APAC_write_sha256(unsigned char * buffer , int size )  
 {  
@@ -330,14 +351,9 @@ void APAC_write_sha256(unsigned char * buffer , int size )
     }  
 
     //读文件  
-    fwrite(buffer,1,size,fp);//每次读一个，共读size次  
+    fwrite(buffer,1,size,fp); 
   
-
-	for(i=0;i<size;i++){
-		//printf("%02X\n",ar[i]);
-	}
     fclose(fp);  
-    free(ar);  
 }  
 
 //合并文件组
@@ -348,140 +364,103 @@ void MergeFiles(char** sFiles,int nFileCount,char* _target)
     FILE *current,*target;
     int length = 0;
     char* s;
-    target = fopen(_target,"wb");           //以可写的二进制模式打开目标文件 
-    for(i = 0; i < nFileCount ; i++)        //根据文件个数遍历源文件组 
+    target = fopen(_target,"wb");           //open file writable binary 
+    for(i = 0; i < nFileCount ; i++)        //merge file counts 
     {
-        current = fopen(sFiles[i],"rb");    //以二进制只读模式打开当前源文件 
-        fseek(current,0,SEEK_END);          //定位到当前源文件末尾 
-        length = ftell(current);            //获取当前源文件指针的位置，即获取了文件长度
-        if(!length)
-            return;
-        fseek(current,0,SEEK_SET);          //定位到当前源文件开头 
-        s = (char*)malloc(length);          //读取源文件的缓存区 
-        fread(s,1,length,current);          //将源文件的内容读至缓存区 
-        fwrite(s,1,length,target);          //将缓存区里的内容写至目标文件 
-        fclose(current);                    //关闭当前源文件，开始进行下一个源文件的读取 
+        current = fopen(sFiles[i],"rb");     
+        fseek(current,0,SEEK_END);          //located at the end of file
+        length = ftell(current);            //get  the length
+        if(!length) return;
+
+        fseek(current,0,SEEK_SET);          //located at the beginning of the current file
+        s = (char*)malloc(length);           
+        fread(s,1,length,current);          //read to buffer 
+        fwrite(s,1,length,target);          //write 
+        fclose(current);                    
     }
-    fclose(target);                         //关闭目标文件 
+    fclose(target);                         
 }
 
 
-int buffer[10]={0};
-
-unsigned char ivec[16] = "0000000000000000";
-unsigned char sz_sharekey[16] = { 0x03,0x4B,0x2A,0xF4,0x33,0xAF,0xDF,0xAA,0x78,0xA1,0x1B,0x77,0xD5,0xF5,0x0E,0x85 };
-
 int main(int argc, char* argv[])
 {  
-	char** p=(char**)malloc(100);
-	int j=0;
-	char * addr;
-	unsigned char md[32];  
-	// AES_SHA256
-    unsigned char AES_SHA256[32] = {0};
-
-	// PUB_KEY
-    unsigned char PUB_KEY[32] = {0};
+	char** merger_files=(char**)malloc(100);
+	char * app_addr;
+	char * aes_key_addr;
+	int i = 0;
 
 
-
-	if(argc !=4){
-		printf("Usage for rfm: Merge_bin.exe <-rfm> <rfm_header.bin> <app.bin> \n");
-		printf("Usage for lock: Merge_bin.exe <-lock> <lock_header.bin> <app.bin> \n");
-		printf("Usage for patch: Merge_bin.exe <-patch> <patch_header.bin> <patch.bin> \n");
+	if(argc !=5){
+		printf("Usage for rfm: Merge_bin.exe <-rfm> <rfm_header.bin> <app1.bin> <aes128_key.bin> \n");
+		printf("Usage for lock: Merge_bin.exe <-lock> <lock_header.bin> <app2.bin> <aes128_key.bin> \n");
+		printf("Usage for patch: Merge_bin.exe <-patch> <patch_header.bin> <app3.bin> <aes128_key.bin> \n");
 		return;
 	}
-	p[0]=argv[2];//heaer.bin
-	p[1]=argv[3];//app.bin
-	p[2]=target_pubkey;
-	//p[3]=target_sharekey;
-	addr = argv[3];
-	if(!strcmp(argv[1],rfm_para)){
-		APAC_read(addr);	
-		SHA256((const unsigned char *)ar, size_fp, md); 
-		printf("Start compute.......................\n");
+	merger_files[0]=argv[2];//heaer.bin
+	merger_files[1]=argv[3];//app.bin
+	merger_files[2]=target_pubkey;
+	app_addr = argv[3];
+	aes_key_addr = argv[4];
+
+	/**
+	 * Merge flow
+	 * 1. Get AES128_KEY from ota_sign_pubkey.bin 
+	 * 2. Compute asset SHA256 
+	 * 3. Encrypt SHA256 with AES128_CBC
+	 * 4. Generate public key with the EN25519 algorithm
+	 */
+
+
+	
+
+	//1. Get AES128_KEY from ota_sign_pubkey.bin
+	APAC_read(aes_key_addr, AES128_KEY);
+	for (i = 0; i < 16; i++)
+	{
+		printf("0x%02X,", AES128_KEY[i] );
+	}
+	printf(" \n AES128_KEY finished...\n");
+
+	//2. Compute asset SHA256 
+	APAC_compute_sha256(app_addr, SHA256_IMG);
+	printf("Start compute.......................\n");
+	APAC_write_sha256(SHA256_IMG, 32);
+
+	for (i = 0; i < 32; i++)
+	{
+		printf("0x%02X,", SHA256_IMG[i] & 0xFF);
+	}
+	printf(" \n compute SHA256 finished\n");
 
 
 
-		int i = 0;
+	//3. Encrypt SHA256 with AES128_CBC
+	aes_encrypt_PKCS5Padding(SHA256_IMG, strlen(SHA256_IMG), AES128_KEY, ivec, AES_SHA256);
 
-		for (i = 0; i < 32; i++)
-		{
-			printf("0x%02X,", md[i] & 0xFF);
-		}
-		printf("  md finish\n");
+	for (i = 0; i < 32; i++)
+	{
+		printf("0x%02X,", AES_SHA256[i] & 0xFF);
+	}
+	printf("\n AES_SHA256 encrypted: %d\n\n", sizeof(AES_SHA256));
 
-		memset(AES_SHA256, 0, sizeof(AES_SHA256));
-		aes_encrypt_PKCS5Padding(md, strlen(md), sz_sharekey, ivec, AES_SHA256);
+	//4. Generate public key with the EN25519 algorithm
+	scalarmult(PUB_KEY, SHA256_IMG , AES_SHA256);
+	for (i = 0; i < 32; i++)
+	{
+		printf("0x%02X,", PUB_KEY[i] & 0xFF);
+	}
 
-		for (i = 0; i < 32; i++)
-		{
-			printf("0x%02X,", AES_SHA256[i] & 0xFF);
-		}
-		printf("         ");
-		printf("AES_SHA256 length: %d\n\n", sizeof(AES_SHA256));
+	APAC_write_pubkey(PUB_KEY,32);
+	printf("\n APAC_write_pubkey ok\n");
 
+	if (!strcmp(argv[1], rfm_para))
+		MergeFiles(merger_files,3,target_rfm);
+	else if (!strcmp(argv[1], lock_para))
+		MergeFiles(merger_files, 3, target_lock);
+	else if (!strcmp(argv[1], patch_para))
+		MergeFiles(merger_files, 3, target_patch);
 
-		scalarmult(PUB_KEY, md , AES_SHA256);
-		printf("PUB_KEY has ok\n");
-		for (i = 0; i < 32; i++)
-		{
-			printf("0x%02X,", PUB_KEY[i] & 0xFF);
-		}
-		printf("         ");
-		printf("PUB_KEY length: %d\n\n", sizeof(PUB_KEY));
-
-		APAC_write_pubkey(PUB_KEY,32);
-		printf("APAC_write_pubkey ok\n");
-
-		
- 
-		APAC_write_sha256(md,32);		
-		MergeFiles(p,3,target_rfm);
-	}else if (!strcmp(argv[1], patch_para)) {
-		APAC_read(addr);
-		SHA256((const unsigned char *)ar, size_fp, md);
-		printf("Start compute patch.......................\n");
-
-
-
-		int i = 0;
-
-		for (i = 0; i < 32; i++)
-		{
-			printf("0x%02X,", md[i] & 0xFF);
-		}
-		printf("  md finish\n");
-
-		memset(AES_SHA256, 0, sizeof(AES_SHA256));
-		aes_encrypt_PKCS5Padding(md, strlen(md), sz_sharekey, ivec, AES_SHA256);
-
-		for (i = 0; i < 32; i++)
-		{
-			printf("0x%02X,", AES_SHA256[i] & 0xFF);
-		}
-		printf("         ");
-		printf("AES_SHA256 length: %d\n\n", sizeof(AES_SHA256));
-
-
-		scalarmult(PUB_KEY, md, AES_SHA256);
-		printf("PUB_KEY has ok\n");
-		for (i = 0; i < 32; i++)
-		{
-			printf("0x%02X,", PUB_KEY[i] & 0xFF);
-		}
-		printf("         ");
-		printf("PUB_KEY length: %d\n\n", sizeof(PUB_KEY));
-
-		APAC_write_pubkey(PUB_KEY, 32);
-		printf("APAC_write_pubkey ok\n");
-
-
-
-		APAC_write_sha256(md, 32);
-		MergeFiles(p, 3, target_patch);
-	}else if(!strcmp(argv[1],lock_para))
-		MergeFiles(p,2,target_lock);
+	
 
     return 0;  
 } 

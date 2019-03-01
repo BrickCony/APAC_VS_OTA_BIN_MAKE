@@ -1,4 +1,0 @@
----- main Matches (3 in 3 files) ----
-Asn1t.h (d:\vs_workspace\merge_bin\openssl_out32dll\inc32\openssl): * error has occurred and the main operation should be abandoned. If major
-Ed25519.c (d:\vs_workspace\merge_bin\merge_bin):int main() {
-Merge_bin.c (d:\vs_workspace\merge_bin\merge_bin):int main(int argc, char* argv[])
